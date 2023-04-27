@@ -146,6 +146,15 @@ func (server *MultiTenantServer) getArtifactHubFileRequestHandler(c *gin.Context
 	c.Data(200, artifactHubFileContentType, artifactHubFile)
 }
 
+// @Summary      download chart package(.tgz) or prov file
+// @Produce      application/x-tar
+// @Produce      application/pgp-signature
+// @Produce      application/octet-stream
+// @Security     BasicAuth
+// @Param        filename    path     string  true  "<chart-name>-<version>.tgz or <chart-name>-<version>.tgz.prov"
+// @Success      200  {file}   string
+// @Failure      default  {object}   gin.H
+// @Router       /charts/{filename} [get]
 func (server *MultiTenantServer) getStorageObjectRequestHandler(c *gin.Context) {
 	repo := c.Param("repo")
 	filename := c.Param("filename")
@@ -222,6 +231,17 @@ func (server *MultiTenantServer) getStorageObjectValuesRequestHandler(c *gin.Con
 	}
 	c.Data(200, "application/yaml", data)
 }
+
+type GetAllChartsOutput map[string]helm_repo.ChartVersions
+
+// @Summary      list all charts
+// @Produce      json
+// @Security     BasicAuth
+// @Param        offset    query     integer  false "offset"
+// @Param        limit    query     integer  false "limit"
+// @Success      200  {object}    GetAllChartsOutput
+// @Failure      default  {object}   gin.H
+// @Router       /api/charts [get]
 func (server *MultiTenantServer) getAllChartsRequestHandler(c *gin.Context) {
 	repo := c.Param("repo")
 	offset := 0
@@ -255,6 +275,13 @@ func (server *MultiTenantServer) getAllChartsRequestHandler(c *gin.Context) {
 	c.JSON(200, allCharts)
 }
 
+// @Summary      list chart versions
+// @Produce      json
+// @Security     BasicAuth
+// @Param        name    path     string  true  "chart name"
+// @Success      200  {object}   helm_repo.ChartVersions
+// @Failure      default  {object}   gin.H
+// @Router       /api/charts/{name} [get]
 func (server *MultiTenantServer) getChartRequestHandler(c *gin.Context) {
 	repo := c.Param("repo")
 	name := c.Param("name")
@@ -279,6 +306,14 @@ func (server *MultiTenantServer) headChartRequestHandler(c *gin.Context) {
 	c.Status(200)
 }
 
+// @Summary      get chart info by version
+// @Produce      json
+// @Security     BasicAuth
+// @Param        name    path     string  true  "chart name"
+// @Param        version    path     string  true  "chart version"
+// @Success      200  {object}   helm_repo.ChartVersion
+// @Failure      default  {object}   gin.H
+// @Router       /api/charts/{name}/{version} [get]
 func (server *MultiTenantServer) getChartVersionRequestHandler(c *gin.Context) {
 	repo := c.Param("repo")
 	name := c.Param("name")
@@ -305,6 +340,14 @@ func (server *MultiTenantServer) headChartVersionRequestHandler(c *gin.Context) 
 	c.Status(200)
 }
 
+// @Summary      delete chart version
+// @Produce      json
+// @Security     BasicAuth
+// @Param        name    path     string  true  "chart name"
+// @Param        version    path     string  true  "chart version"
+// @Success      200  {object}   gin.H
+// @Failure      default  {object}   gin.H
+// @Router       /api/charts/{name}/{version} [delete]
 func (server *MultiTenantServer) deleteChartVersionRequestHandler(c *gin.Context) {
 	repo := c.Param("repo")
 	name := c.Param("name")
@@ -327,6 +370,16 @@ func (server *MultiTenantServer) deleteChartVersionRequestHandler(c *gin.Context
 	c.JSON(200, objectDeletedResponse)
 }
 
+// @Summary      upload a chart package or prov file
+// @Accept	     multipart/form-data
+// @Produce      json
+// @Security     BasicAuth
+// @Param        chart formData file false "chart package file"
+// @Param        prov formData file false "prov file"
+// @Param        force query bool true "force upload"
+// @Success      201  {object}   gin.H
+// @Failure      default  {object}   gin.H
+// @Router       /api/charts [post]
 func (server *MultiTenantServer) postRequestHandler(c *gin.Context) {
 	if c.ContentType() == "multipart/form-data" {
 		server.postPackageAndProvenanceRequestHandler(c) // new route handling form-based chart and/or prov files

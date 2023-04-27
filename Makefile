@@ -231,4 +231,8 @@ lint:
 		exit 1; \
 	fi
 
+.PHONY: openapi
+openapi:
+	cd cmd/chartmuseum && swag init -d "./,../../pkg" --parseDependency --parseInternal=false
+
 

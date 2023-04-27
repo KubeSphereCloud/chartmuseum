@@ -25,6 +25,10 @@ import (
 	"regexp"
 	"time"
 
+	_ "helm.sh/chartmuseum/cmd/chartmuseum/docs"
+
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 
 	cm_auth "github.com/chartmuseum/auth"
@@ -98,6 +102,7 @@ func NewRouter(options RouterOptions) *Router {
 	engine.Use(gin.Recovery())
 	engine.Use(requestWrapper(options.Logger, options.LogHealth, options.LogLatencyInteger))
 	engine.Use(limits.RequestSizeLimiter(int64(options.MaxUploadSize)))
+	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	if options.EnableMetrics {
 		p := ginprometheus.NewPrometheus("chartmuseum")

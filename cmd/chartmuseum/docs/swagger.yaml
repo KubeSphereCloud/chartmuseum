@@ -1,0 +1,345 @@
+basePath: /
+definitions:
+  chart.Dependency:
+    properties:
+      alias:
+        description: Alias usable alias to be used for the chart
+        type: string
+      condition:
+        description: A yaml path that resolves to a boolean, used for enabling/disabling
+          charts (e.g. subchart1.enabled )
+        type: string
+      enabled:
+        description: Enabled bool determines if chart should be loaded
+        type: boolean
+      import-values:
+        description: |-
+          ImportValues holds the mapping of source values to parent key to be imported. Each item can be a
+          string or pair of child/parent sublist items.
+        items: {}
+        type: array
+      name:
+        description: |-
+          Name is the name of the dependency.
+
+          This must mach the name in the dependency's Chart.yaml.
+        type: string
+      repository:
+        description: |-
+          The URL to the repository.
+
+          Appending `index.yaml` to this string should result in a URL that can be
+          used to fetch the repository index.
+        type: string
+      tags:
+        description: Tags can be used to group charts for enabling/disabling together
+        items:
+          type: string
+        type: array
+      version:
+        description: |-
+          Version is the version (range) of this chart.
+
+          A lock file will always produce a single version, while a dependency
+          may contain a semantic version range.
+        type: string
+    type: object
+  chart.Maintainer:
+    properties:
+      email:
+        description: Email is an optional email address to contact the named maintainer
+        type: string
+      name:
+        description: Name is a user name or organization name
+        type: string
+      url:
+        description: URL is an optional URL to an address for the named maintainer
+        type: string
+    type: object
+  chartmuseum_server_multitenant.GetAllChartsOutput:
+    additionalProperties:
+      items:
+        $ref: '#/definitions/repo.ChartVersion'
+      type: array
+    type: object
+  gin.H:
+    additionalProperties: {}
+    type: object
+  repo.ChartVersion:
+    properties:
+      annotations:
+        additionalProperties:
+          type: string
+        description: |-
+          Annotations are additional mappings uninterpreted by Helm,
+          made available for inspection by other applications.
+        type: object
+      apiVersion:
+        description: The API Version of this chart. Required.
+        type: string
+      appVersion:
+        description: The version of the application enclosed inside of this chart.
+        type: string
+      checksum:
+        description: |-
+          ChecksumDeprecated is deprecated in Helm 3, and therefore ignored. Helm 3 replaced
+          this with Digest. However, with a strict YAML parser enabled, a field must be
+          present on the struct for backwards compatibility.
+        type: string
+      condition:
+        description: The condition to check to enable chart
+        type: string
+      created:
+        type: string
+      dependencies:
+        description: Dependencies are a list of dependencies for a chart.
+        items:
+          $ref: '#/definitions/chart.Dependency'
+        type: array
+      deprecated:
+        description: Whether or not this chart is deprecated
+        type: boolean
+      description:
+        description: A one-sentence description of the chart
+        type: string
+      digest:
+        type: string
+      engine:
+        description: |-
+          EngineDeprecated is deprecated in Helm 3, and therefore ignored. However, with a strict
+          YAML parser enabled, this field must be present.
+        type: string
+      home:
+        description: The URL to a relevant project page, git repo, or contact person
+        type: string
+      icon:
+        description: The URL to an icon file.
+        type: string
+      keywords:
+        description: A list of string keywords
+        items:
+          type: string
+        type: array
+      kubeVersion:
+        description: KubeVersion is a SemVer constraint specifying the version of
+          Kubernetes required.
+        type: string
+      maintainers:
+        description: A list of name and URL/email address combinations for the maintainer(s)
+        items:
+          $ref: '#/definitions/chart.Maintainer'
+        type: array
+      name:
+        description: The name of the chart. Required.
+        type: string
+      removed:
+        type: boolean
+      sources:
+        description: Source is the URL to the source code of this chart
+        items:
+          type: string
+        type: array
+      tags:
+        description: The tags to check to enable chart
+        type: string
+      tillerVersion:
+        description: |-
+          TillerVersionDeprecated is deprecated in Helm 3, and therefore ignored. However, with a strict
+          YAML parser enabled, this field must be present.
+        type: string
+      type:
+        description: 'Specifies the chart type: application or library'
+        type: string
+      url:
+        description: |-
+          URLDeprecated is deprecated in Helm 3, superseded by URLs. It is ignored. However,
+          with a strict YAML parser enabled, this must be present on the struct.
+        type: string
+      urls:
+        items:
+          type: string
+        type: array
+      version:
+        description: A SemVer 2 conformant version string of the chart. Required.
+        type: string
+    type: object
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: ChartMuseum API
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Swagger API For ChartMuseum
+  version: "1.0"
+paths:
+  /api/charts:
+    get:
+      parameters:
+      - description: offset
+        in: query
+        name: offset
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/chartmuseum_server_multitenant.GetAllChartsOutput'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BasicAuth: []
+      summary: list all charts
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: chart package file
+        in: formData
+        name: chart
+        type: file
+      - description: prov file
+        in: formData
+        name: prov
+        type: file
+      - description: force upload
+        in: query
+        name: force
+        required: true
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/gin.H'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BasicAuth: []
+      summary: upload a chart package or prov file
+  /api/charts/{name}:
+    get:
+      parameters:
+      - description: chart name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/repo.ChartVersion'
+            type: array
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BasicAuth: []
+      summary: list chart versions
+  /api/charts/{name}/{version}:
+    delete:
+      parameters:
+      - description: chart name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: chart version
+        in: path
+        name: version
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BasicAuth: []
+      summary: delete chart version
+    get:
+      parameters:
+      - description: chart name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: chart version
+        in: path
+        name: version
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repo.ChartVersion'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BasicAuth: []
+      summary: get chart info by version
+  /charts/{filename}:
+    get:
+      parameters:
+      - description: <chart-name>-<version>.tgz or <chart-name>-<version>.tgz.prov
+        in: path
+        name: filename
+        required: true
+        type: string
+      produces:
+      - application/x-tar
+      - application/pgp-signature
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BasicAuth: []
+      summary: download chart package(.tgz) or prov file
+schemes:
+- http
+- https
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"
